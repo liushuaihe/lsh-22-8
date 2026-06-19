@@ -35,10 +35,13 @@ export function InboundForm() {
     const qty = parseInt(quantity);
     if (qty <= 0) return;
 
+    const trimmedBatchNo = batchNo.trim();
+    if (!trimmedBatchNo) return;
+
     if (existingBatch && !isAppendConfirmed) return;
 
     inbound(selectedSku, {
-      batchNo,
+      batchNo: trimmedBatchNo,
       productionDate,
       expiryDate,
       quantity: qty,

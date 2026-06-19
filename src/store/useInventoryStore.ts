@@ -25,9 +25,12 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     const { batches, skus } = get();
     const now = new Date().toISOString();
     const status = calculateExpiryStatus(batchData.expiryDate);
+    const trimmedBatchNo = batchData.batchNo.trim();
+
+    const normalizedBatchData = { ...batchData, batchNo: trimmedBatchNo };
 
     const existingBatch = batches.find(
-      b => b.skuId === skuId && b.batchNo === batchData.batchNo
+      b => b.skuId === skuId && b.batchNo.trim() === trimmedBatchNo
     );
 
     let updatedBatches: Batch[];
@@ -44,17 +47,17 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
         }
         return b;
       });
-      logMessage = `批次 ${batchData.batchNo} 追加入库 ${batchData.quantity} 件`;
+      logMessage = `批次 ${trimmedBatchNo} 追加入库 ${batchData.quantity} 件`;
     } else {
       const newBatch: Batch = {
-        ...batchData,
+        ...normalizedBatchData,
         id: generateId(),
         skuId,
         status,
         createdAt: now
       };
       updatedBatches = [...batches, newBatch];
-      logMessage = `新批次 ${batchData.batchNo} 入库 ${batchData.quantity} 件`;
+      logMessage = `新批次 ${trimmedBatchNo} 入库 ${batchData.quantity} 件`;
     }
 
     const updatedSKUs = skus.map(s => {
@@ -71,7 +74,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       id: generateId(),
       type: 'inbound',
       skuId,
-      batchId: existingBatch?.id || updatedBatches.find(b => b.batchNo === batchData.batchNo)?.id,
+      batchId: existingBatch?.id || updatedBatches.find(b => b.batchNo.trim() === trimmedBatchNo)?.id,
       quantity: batchData.quantity,
       status: 'success',
       message: logMessage,
